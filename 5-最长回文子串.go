@@ -129,10 +129,10 @@ func longestPalindrome(s string) string {
     end := 0
 
     for i:=0; i<len(s); i++ {
-        len1 := extendPalindromString(s, i, i) // 奇数
+        len1 := expandAroundCenter(s, i, i) // 奇数
         len2 := 0
         if i != len(s)-1 {
-            len2 = extendPalindromString(s, i, i+1) // 偶数
+            len2 = expandAroundCenter(s, i, i+1) // 偶数
         }
 
         if len1 > len2 && len1 > end-start+1 {
@@ -152,7 +152,7 @@ func longestPalindrome(s string) string {
 }
 
 // 从给定中心点向两边找回文子串
-func extendPalindromString(s string, left int, right int) int {
+func expandAroundCenter(s string, left int, right int) int {
     for left>=0 && right < len(s) && s[left] == s[right] {
         left--
         right++
