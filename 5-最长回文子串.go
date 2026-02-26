@@ -54,3 +54,110 @@ func longestPalindrome(s string) string {
 
     return s[start : start+maxLen]
 }
+
+
+// *************************************************
+// 中心扩散法
+// *************************************************
+
+// 中心扩散法
+// 一个循环，针对每一个下标，向两侧寻找回文子串，并且记录最长值并更新（可以根据中心点和长度计算得出起末）
+// 奇数长度子串的中心点是一个字符，偶数长度子串的中心点是两个字符
+// 因此在从每一个下标向两侧扩散的时候，要比较单中心店和双中心点的情况
+
+func longestPalindrome(s string) string {
+    if len(s) <= 1 {
+        return s
+    }
+
+    start := 0
+    end := 0
+
+    for i:=0; i<len(s); i++ {
+        len1 := extendPalindromString(s, i, i) // 奇数
+        len2 := 0
+        if i != len(s)-1 {
+            len2 = extendPalindromString(s, i, i+1) // 偶数
+        }
+
+        if len1 > len2 && len1 > end-start+1 {
+            // 新的奇数长度回文子串成为最长子串
+            // 更新end和start
+            start = i-(len1-1)/2
+            end = i+(len1-1)/2
+        } else if len2 > len1 && len2 > end-start+1 {
+            // 新的偶数长度回文子串成为最长子串
+            // 更新end和start
+            start = i-(len2/2-1)
+            end = i+1+(len2/2-1) // 这里要注意不是i+(len2/2-1)
+        }
+    }
+
+    return s[start:end+1]
+}
+
+// 从给定中心点向两边找回文子串
+func extendPalindromString(s string, c1 int, c2 int) int {
+    for  ; c1>=0 && c2 < len(s) && s[c1] == s[c2] ; {
+        c1 -= 1
+        c2 += 1
+    }
+
+    // 结束循环时，回文子串如果有，就是c1+1到c2-1，长度是c2-1-(c1+1)+1=c2-c1-1
+    if s[c1+1] == s[c2-1]{
+        return c2-c1-1
+    } else {
+        return 0
+    }
+}
+
+// *************************************************
+// 参考deepseek的优化，简化一些不必要的判断
+// *************************************************
+
+// 中心扩散法
+// 一个循环，针对每一个下标，向两侧寻找回文子串，并且记录最长值并更新（可以根据中心点和长度计算得出起末）
+// 奇数长度子串的中心点是一个字符，偶数长度子串的中心点是两个字符
+// 因此在从每一个下标向两侧扩散的时候，要比较单中心店和双中心点的情况
+
+func longestPalindrome(s string) string {
+    if len(s) <= 1 {
+        return s
+    }
+
+    start := 0
+    end := 0
+
+    for i:=0; i<len(s); i++ {
+        len1 := extendPalindromString(s, i, i) // 奇数
+        len2 := 0
+        if i != len(s)-1 {
+            len2 = extendPalindromString(s, i, i+1) // 偶数
+        }
+
+        if len1 > len2 && len1 > end-start+1 {
+            // 新的奇数长度回文子串成为最长子串
+            // 更新end和start
+            start = i-(len1-1)/2
+            end = i+(len1-1)/2
+        } else if len2 > len1 && len2 > end-start+1 {
+            // 新的偶数长度回文子串成为最长子串
+            // 更新end和start
+            start = i-(len2/2-1)
+            end = i+1+(len2/2-1) // 这里要注意不是i+(len2/2-1)
+        }
+    }
+
+    return s[start:end+1]
+}
+
+// 从给定中心点向两边找回文子串
+func extendPalindromString(s string, left int, right int) int {
+    for left>=0 && right < len(s) && s[left] == s[right] {
+        left--
+        right++
+    }
+
+    // 思考一下，其实可以直接返回right-left-1
+    return right-left-1
+}
