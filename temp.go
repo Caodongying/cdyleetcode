@@ -8,59 +8,86 @@ type TreeNode struct {
     Right *TreeNode
 }
 
-func lowestCommonAncestor(root, p, q *TreeNode) *TreeNode {
-    var findPath func(root, target *TreeNode, result *[]*TreeNode) bool
-    findPath = func(root, target *TreeNode, result *[]*TreeNode) bool {
-        if root == nil {
-            return false
-        }
-        *result = append(*result, root)
-
-        if root.Val == target.Val {
-            fmt.Print("找到了，此时的result是")
-            for _, node := range *result {
-                fmt.Print(node.Val, " ")
-            }
-            fmt.Println()
-            return true
-        }
-
-        if root.Left == nil && root.Right == nil {
-            *result = (*result)[:len(*result)-1]
-            return false
-        }
-
-        if findPath(root.Left, target, result) {
-            return true
-        }
-        rightExist := findPath(root.Right, target, result)
-        if !rightExist {
-            *result = (*result)[:len(*result)-1]
-        }
-        return rightExist
-    }
-
-    pathP := []*TreeNode{}
-    pathQ := []*TreeNode{}
-
-    findPath(root, p, &pathP)
-    findPath(root, q, &pathQ)
-
-    length := min(len(pathP), len(pathQ))
-
-    var i int
-    for i=0; i < length && pathP[i].Val == pathQ[i].Val; i++ {}
-
-    // return i-1
-    return pathP[i-1] // 返回值要正确
+type Node struct {
+    Val int
+    Next *Node
+    Random *Node
 }
 
-// 理想状况：深度优先遍历dfs
-// 确定找到p时的路径，存在切片里
-// 确定找到q时的路径，存在切片里
-// 这两个路径必定以root.Val开头
-// 找到这两个切片从下标0开始的，最后一个相同的值
-// 这个值对应的节点就是最终要的结果
+/**
+ * Definition for a Node.
+ * type Node struct {
+ *     Val int
+ *     Next *Node
+ *     Random *Node
+ * }
+ */
+
+func copyRandomList(head *Node) *Node {
+    if head == nil {
+        return nil
+    }
+
+    nodemap := make(map[int]int) // key和value都是Node的地址。命名不可以是map
+
+    currentCopy := &Node{} // 哨兵节点，虚拟头结点
+
+    for p, q:=head, currentCopy; ; p, q = p.Next, q.Next {
+        // 检查当前节点的值是否已经拷贝过
+        if addr, exists := nodemap[p]; exists {
+            // 已经拷贝过，新链表直接链
+            q.Next = addr
+            q = q.Next
+        } else{
+            // 没有拷贝过，创建新节点
+            newNode := &Node{
+                Val: p.Val,
+            }
+            nodemap[p] = newNode
+        }
+
+        // 创建random
+        if p.Random == nil {
+            newNode.Random = nil
+        } else {
+            if addr, exists := nodemap[p.Random]; exists{
+                newNode.Random = addr
+            } else {
+                newRandomNode := &Node{
+                    Val: p.Random.Val,
+                }
+                nodemap[p.Random] = newRandomNode
+        }
+
+        // 创建next
+        if p.Next == nil {
+            q.Next = newNode
+            q = q.Next
+            q.Next = nil
+            break
+        }
+        if addr, exists := nodemap[p.Next]; exists{
+            newNode.Next = addr
+        } else {
+            newNextNode := &Node{
+                Val: p.Next.Val,
+            }
+            nodemap[p.Next] = newNextNode
+        }
+
+        // 新链表，链接新节点
+        q.Next = newNode
+        q = q.Next
+
+    }
+
+    return currentCopy.Next
+}
+}
+
+// 关键点是存储Random
+// 建立原链表中的节点node1和新链表中的复制节点node2的对应关系
+// 可以用一个nodemap存储这个映射关系
 
 
 func main() {
