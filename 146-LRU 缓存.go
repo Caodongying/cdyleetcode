@@ -302,6 +302,10 @@ func (this *LRUCache) removeNode(node *Node) {
 }
 
 func (this *LRUCache) removeTail() *Node{
+    // 如果链表为空（只有虚拟节点），返回 nil
+    if this.dummyTail.prev == this.dummyHead {
+        return nil
+    }
     tail := this.dummyTail.prev
     this.removeNode(tail)
     return tail
