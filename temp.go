@@ -2,165 +2,83 @@ package main
 
 import "fmt"
 
-type TreeNode struct {
-    Val int
-    Left *TreeNode
-    Right *TreeNode
+// import "fmt"
+
+
+var digitCharMap map[int][]string
+
+func buildMap() {
+	char := 'a'
+	for i := 2; i <= 9; i++ {
+		value := []string{}
+		if i == 7 || i == 9 {
+			value = append(value, string(char), string(char+1), string(char+2), string(char+3))
+			char = char + 4
+		} else {
+			value = append(value, string(char), string(char+1), string(char+2))
+			char = char + 3
+		}
+
+		digitCharMap[i] = value
+	}
+
+    printMap()
+
 }
 
-type Node struct {
-    Val int
-    Next *Node
-    Random *Node
+func printMap() {
+    for k, v := range digitCharMap {
+        fmt.Printf("key: %v, value: %v\n", k, v)
+    }
 }
 
+func letterCombinations(digits string) []string {
+	// digitCharMap := make(map[int][]string, 0, 8) 错误 map只能直接指定容量
+    digitCharMap = make(map[int][]string, 8) // 不能是digitCharMap :=
+	buildMap()
+	result := make([]string, 0)
+    combination := ""
+    n := len(digits)
+    fmt.Println("n是", n)
 
-type ListNode struct {
-    Val int
-    Next *ListNode
-}
-
-
-/**
- * Definition for a Node.
- * type Node struct {
- *     Val int
- *     Next *Node
- *     Random *Node
- * }
- */
-
-func printListNode(head *ListNode) {
-    curr := head
-    for curr != nil {
-        fmt.Printf("%d ", curr.Val)
-        curr = curr.Next
-    }
-    fmt.Println()
-}
-
-/**
- * Definition for singly-linked list.
- * type ListNode struct {
- *     Val int
- *     Next *ListNode
- * }
- */
-/**
- * Definition for singly-linked list.
- * type ListNode struct {
- *     Val int
- *     Next *ListNode
- * }
- */
-// 2 4 3 7 -1 0 3 2
-// [2 4] [3 7] [-1 0] [3 2]
-
-func getListLength(head *ListNode) int {
-    length := 0
-
-    for head != nil {
-        length++
-        head = head.Next
+    nums := make([]int, 0, n)
+    // 把digits转化为[]int
+    for _, v := range digits {
+        nums = append(nums, int(v-'0'))
     }
 
-    return length
-}
-
-// 分割链表，前step个节点分割出去，返回剩余链表的头结点
-func getSplitList(head *ListNode, step int) *ListNode {
-    curr, prev := head, head
-    for i:=1; i <= step && curr != nil; i++ {
-        prev = curr
-        curr = curr.Next
-    }
-
-    // 如果链表长度<=size
-    if curr == nil {
-        return nil
-    }
-
-    prev.Next = nil
-
-    fmt.Println("原链表")
-    printListNode(head)
-    fmt.Printf("切割%d长度后的链表为: ", step)
-    printListNode(curr)
-
-    return curr
-}
-
-func mergeTwoList(head1 *ListNode, head2 *ListNode) *ListNode {
-    resultHead := &ListNode{}
-    curr := resultHead
-
-    for head1 != nil && head2 != nil {
-        if head1.Val < head2.Val {
-            curr.Next = head1
-            head1 = head1.Next
-        } else {
-            curr.Next = head2
-            head2 = head2.Next
-        }
-        curr = curr.Next
-    }
-
-    if head1 != nil {
-        curr.Next = head1
-    } else if head2 != nil {
-        curr.Next = head2
-    }
-
-    return resultHead.Next
-}
-
-func sortList(head *ListNode) *ListNode {
-    if head == nil || head.Next == nil {
-        return head
-    }
-
-    var step int
-    listLength := getListLength(head)
-    curr := head
-    var dummyHead *ListNode
-
-    for step = 1 ; step <= listLength; step = step * 2 {
-        dummyHead = &ListNode{}
-        newCurr := dummyHead
-        for curr != nil {
-            head1 := curr // 此时head1后面不是nil，而是整个链表
-            head2 := getSplitList(head1, step) // 从head1后面开始切割，并且把head1和后面断开
-            curr = getSplitList(head2, step) // 下次分割从这开始
-            // 合并head1和head2
-            merged := mergeTwoList(head1, head2)
-            newCurr.Next = merged
-            for newCurr.Next != nil {
-                newCurr = newCurr.Next
-            }
+    var dfs func(idx int, combination string) // 在comnination后，分别加上当前idx对应的集合元素
+    dfs = func(idx int, combination string) {
+        fmt.Println("进入dfs")
+        // 最终的组合字符串长度一定是len(digits)
+        if len(combination) == n {
+            fmt.Println("combination是", combination)
+            result = append(result, combination)
+            return
         }
 
-        curr = dummyHead.Next
+        // charSet := digitCharMap[idx] // 字符可以从chatSet数组中选取
+        charSet := digitCharMap[nums[idx]]
+        fmt.Printf("%d对应的charSet是%v", idx, charSet)
 
+        for i:=0; i<len(charSet); i++ {
+            combination += charSet[i]
+            dfs(idx+1, combination)
+            combination = combination[:len(combination)-1]
+        }
     }
 
-    fmt.Println("最终结果是:")
-    printListNode(dummyHead.Next)
-    return dummyHead.Next
+    dfs(0, combination)
+
+    fmt.Println(result)
+
+    return result
+
 }
 
-// 自底向上，step从1开始双倍增加
-// 多次遍历，直到step大于等于原链表的长度
-// 在每一轮遍历里：按照step，先顺序分割出两组（每组大小为step），然后merge。之后继续分割，直到链表末尾。这个过程也是在循环里实现
-// 每一轮遍历的最后，更新step
+// 每一个digit都是一个字符集合
+// 按字符集合顺序，从每一个集合里取出一个字符，顺序拼接在一起
 
 func main() {
-    // [-1,5,3,4,0]
-    head := &ListNode{Val: -1}
-    head.Next = &ListNode{Val: 5}
-    head.Next.Next = &ListNode{Val: 3}
-    head.Next.Next.Next = &ListNode{Val: 4}
-    head.Next.Next.Next.Next = &ListNode{Val: 0}
-
-    sortList(head)
-
+   letterCombinations("23")
 }
