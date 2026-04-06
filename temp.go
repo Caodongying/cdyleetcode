@@ -3,82 +3,80 @@ package main
 import "fmt"
 
 // import "fmt"
+var result []string
+var path []rune
+var visited []bool
 
+func generateParenthesis(n int) []string {
+    result = make([]string, 0)
+    path = make([]rune, 0, 2*n)
+    visited = make([]bool, 2*n)
 
-var digitCharMap map[int][]string
-
-func buildMap() {
-	char := 'a'
-	for i := 2; i <= 9; i++ {
-		value := []string{}
-		if i == 7 || i == 9 {
-			value = append(value, string(char), string(char+1), string(char+2), string(char+3))
-			char = char + 4
-		} else {
-			value = append(value, string(char), string(char+1), string(char+2))
-			char = char + 3
-		}
-
-		digitCharMap[i] = value
-	}
-
-    printMap()
-
-}
-
-func printMap() {
-    for k, v := range digitCharMap {
-        fmt.Printf("key: %v, value: %v\n", k, v)
-    }
-}
-
-func letterCombinations(digits string) []string {
-	// digitCharMap := make(map[int][]string, 0, 8) 错误 map只能直接指定容量
-    digitCharMap = make(map[int][]string, 8) // 不能是digitCharMap :=
-	buildMap()
-	result := make([]string, 0)
-    combination := ""
-    n := len(digits)
-    fmt.Println("n是", n)
-
-    nums := make([]int, 0, n)
-    // 把digits转化为[]int
-    for _, v := range digits {
-        nums = append(nums, int(v-'0'))
+    brackets := make([]rune, 0, n*2)
+    for i:=0; i<n; i++ {
+        brackets = append(brackets, '(')
+        brackets = append(brackets, ')')
     }
 
-    var dfs func(idx int, combination string) // 在comnination后，分别加上当前idx对应的集合元素
-    dfs = func(idx int, combination string) {
-        fmt.Println("进入dfs")
-        // 最终的组合字符串长度一定是len(digits)
-        if len(combination) == n {
-            fmt.Println("combination是", combination)
-            result = append(result, combination)
-            return
-        }
-
-        // charSet := digitCharMap[idx] // 字符可以从chatSet数组中选取
-        charSet := digitCharMap[nums[idx]]
-        fmt.Printf("%d对应的charSet是%v", idx, charSet)
-
-        for i:=0; i<len(charSet); i++ {
-            combination += charSet[i]
-            dfs(idx+1, combination)
-            combination = combination[:len(combination)-1]
-        }
-    }
-
-    dfs(0, combination)
-
-    fmt.Println(result)
+    dfs(brackets, 2*n)
 
     return result
+}
+
+func dfs(brackets []rune, targetSum int) {
+    // 如果无效，依然返回
+    if len(path)!= 0 &&!isValid(path, targetSum/2) {
+        return
+    }
+
+    if len(path) == targetSum {
+        temp := string(path)
+        fmt.Printf("temp是%v", temp)
+        result = append(result, temp)
+        return
+    }
+
+
+    for i:=0; i<targetSum; i++ {
+        if !visited[i] {
+            path = append(path, brackets[i])
+            visited[i] = true
+        }
+        dfs(brackets, targetSum)
+        path = path[:len(path)-1]
+        visited[i] = false
+    }
+}
+
+func isValid(path []rune, pair int) bool {
+    // 遇到左括号就压栈
+    // 遇到右括号就弹栈。如果栈空就返回bool
+    stack := make([]rune, 0, pair)
+
+    for _, v := range path {
+        if v == '('{
+            stack = append(stack, v)
+        } else if v == ')' {
+            if len(stack) == 0 {
+                return false
+            }
+            // 别忘了弹栈
+            stack = stack[:len(stack)-1]
+        }
+    }
+
+    if len(stack) != 0 { // 千万不能漏了
+        return false
+    }
+
+    return true
 
 }
 
-// 每一个digit都是一个字符集合
-// 按字符集合顺序，从每一个集合里取出一个字符，顺序拼接在一起
+// 遍历所有的排列
+// 如果无效就回溯
+// 但是如何得到所有排列？
 
 func main() {
-   letterCombinations("23")
+   generateParenthesis(3)
 }
