@@ -84,7 +84,7 @@ func isValid(s string) bool {
     if len(s)%2 != 0 {
         return false
     }
-    stack := make([]byte, 0, len(s)) // 不可以是byte
+    stack := make([]byte, 0, len(s))
 
     // 下标访问 s[i]：返回的是第 i 个 byte。
     // for range 迭代：返回的是字符的 Unicode 码点（Code Point），也就是 rune。
